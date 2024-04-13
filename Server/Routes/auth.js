@@ -1,8 +1,8 @@
 const express = require("express");
-const route = express.Router();
+const router = express.Router();
 
-route.get("/", (req, res) => {
-  res.send("<h1>page de auth </h1>");
+router.get("/", (req, res) => {
+  res.send("Hello, API Auth!");
 });
 
-module.exports = route;
+module.exports = router;
