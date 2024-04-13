@@ -5,7 +5,7 @@ const authRoutes = require("./Routes/auth.js");
 const userRoutes = require("./Routes/user");
 const posteRoutes = require("./Routes/poste");
 const profileRoutes = require("./Routes/profile");
-
+app.use(express.json());
 db();
 
 app.get("/", (req, res) => {
