@@ -3,6 +3,7 @@ const { auth } = require("../utils");
 const { check, validationResult } = require("express-validator");
 const route = express.Router();
 const normalize = require("normalize-url");
+const Profiles = require("../Modules/profile");
 /*
 path:api/profile/
 methode pour ajouter prfile
@@ -12,7 +13,7 @@ route.post(
   auth,
   check("status", "status is required").isEmpty(),
   check("skills", "skills is required").isEmpty(),
-  (req, res) => {
+  async (req, res) => {
     const error = validationResult(req);
     if (error) {
       return res.status(400).json({ msg: error.array() });
@@ -41,6 +42,26 @@ route.post(
           }),
       ...rest,
     };
+    const social = { youTube, twitter, facebook, gitHub, instagram, linkedIn };
+    for (const key in social) {
+      if (social[key] && social[key] !== "") {
+        social[key] = normalize(social[key], { forceHttp: true });
+      }
+    }
+    profile.social = social;
+
+    try {
+      let brofileObject = await Profiles.findOneAndUpdate(
+        { user: req.user.id },
+        { profile },
+        { new: true, upsert: true }
+        // new pour return la nouvelle data client;
+        // upsert pour crée un profile de cette user en cas n'exist pas
+      );
+      return res.json({ brofileObject });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
   }
 );
 
