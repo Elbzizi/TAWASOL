@@ -8,9 +8,7 @@ const profileRoutes = require("./Routes/profile");
 app.use(express.json());
 db();
 
-app.get("/", (req, res) => {
-  res.send("<h1>hello world im server</h1>");
-});
+
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

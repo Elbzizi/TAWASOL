@@ -1,9 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const { check, validationResult } = require("express-validator");
-const User = require("../Modules/user");
+const Users = require("../Modules/user");
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken");
+const config = require("config");
+/*
+récupérer les valeur de pody
+ validation request body
+check cette user il ya existe dans labase de donnée
+crybte le password de user
+save cette user dans la base de donnée
+utilise le jwt pour cree token id et return 
+ */
 router.post(
   "/",
   check("name", "Name is required").notEmpty(),
@@ -18,22 +27,39 @@ router.post(
     }
     const { name, email, password } = req.body;
     try {
-      const user = await User.findOne({ email });
+      let user = await Users.findOne({ email });
       if (user) {
         return res
           .status(400)
-          .json({ errors: { msg: "user alredy exist !!!" } });
+          .json({ errors: { msg: "User already exists!!!" } });
       } else {
-        const salt = bcrypt.genSalt(10);
-        user = new User({
+        const salt = bcrypt.genSaltSync(10);
+        newUser = new Users({
           name,
           email,
           password,
         });
-        user.save();
+        newUser.password = await bcrypt.hash(password, salt);
+        user = await newUser.save();
+        const payload = {
+          user: { id: user._id },
+        };
+        jwt.sign(
+          payload,
+          config.get("jwtSecret"),
+          { expiresIn: "5 day" },
+          (err, token) => {
+            if (err) {
+              throw err;
+            } else {
+              res.json({ token });
+            }
+          }
+        );
       }
     } catch (error) {
-      return;
+      console.error(error.message);
+      res.status(500).json(error.message);
     }
   }
 );
