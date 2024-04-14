@@ -11,12 +11,12 @@ methode pour ajouter prfile
 route.post(
   "/",
   auth,
-  check("status", "status is required").isEmpty(),
-  check("skills", "skills is required").isEmpty(),
+  check("status", "status is required").notEmpty(),
+  check("skills", "skills is required").notEmpty(),
   async (req, res) => {
-    const error = validationResult(req);
-    if (error) {
-      return res.status(400).json({ msg: error.array() });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
     const {
       website,
@@ -42,25 +42,33 @@ route.post(
           }),
       ...rest,
     };
-    const social = { youTube, twitter, facebook, gitHub, instagram, linkedIn };
-    for (const key in social) {
-      if (social[key] && social[key] !== "") {
-        social[key] = normalize(social[key], { forceHttp: true });
+    const socialFields = {
+      youTube,
+      twitter,
+      facebook,
+      gitHub,
+      instagram,
+      linkedIn,
+    };
+    for (let key in socialFields) {
+      const value = socialFields[key];
+      if (value && value != "") {
+        socialFields[key] = normalizeUrl(value, { forceHttps: true });
       }
     }
-    profile.social = social;
 
+    profile.social = socialFields;
     try {
       let brofileObject = await Profiles.findOneAndUpdate(
         { user: req.user.id },
-        { profile },
+        { $set: profile },
         { new: true, upsert: true }
         // new pour return la nouvelle data client;
         // upsert pour crée un profile de cette user en cas n'exist pas
       );
       return res.json({ brofileObject });
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res.status(500).json(error.message);
     }
   }
 );
