@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const config = require("config");
 /*
 récupérer les valeur de pody
- validation request body
+validation request body
 check cette user il ya existe dans labase de donnée
 crybte le password de user
 save cette user dans la base de donnée
@@ -19,6 +19,7 @@ router.post(
   check("email", "Invalid email").isEmail(),
   check("password", "Password must be between 6 and 12 characters").isLength({
     min: 6,
+    max: 12,
   }),
   async (req, res) => {
     const errors = validationResult(req);
