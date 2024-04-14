@@ -15,6 +15,7 @@ utilise le jwt pour cree token id et return
  */
 /* register methode ========
 ajouter new user en databae
+path:api/users/register
 public */
 router.post(
   "/register",
@@ -63,12 +64,13 @@ router.post(
       }
     } catch (error) {
       console.error(error.message);
-      res.status(500).json(error.message);
+      res.status(500).json({ msg: error.message });
     }
   }
 );
 /* login methode ========
 login user en application
+path:api/users/login
 public */
 router.post(
   "/login",
@@ -114,9 +116,41 @@ router.post(
       }
     } catch (error) {
       console.error(error.message);
-      res.status(500).json(error.message);
+      res.status(500).json({ msg: error.message });
     }
   }
 );
-
+/* generate token  ========
+return information user
+path:api/users/
+Privat */
+const auth = (req, res, next) => {
+  const token = req.header("auth-token");
+  if (!token) {
+    res.status(401).json({ msg: "token indefiend, autorisation refusée " });
+  }
+  try {
+    jwt.verify(token, config.get("jwtSecret"), (err, decoded) => {
+      if (err) {
+        res.status(401).json({ msg: "token invalide, autorisation refusée " });
+      } else {
+        req.user = decoded.user;
+        next();
+      }
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: error.message });
+  }
+};
+router.get("/", auth, async (req, res) => {
+  try {
+    //  const user = await Users.findById(req.user.id).select("-password");
+    const user = await Users.find({ _id: req.user.id }, { password: 0 });
+    res.json(user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: error.message });
+  }
+});
 module.exports = router;
